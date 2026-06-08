@@ -1,3 +1,4 @@
+from __future__ import annotations
 #!/usr/bin/env python3
 """可选元认知 daemon：60s 同步轮询主动发起动作；不自动启动."""
 # === hermes-hive path bootstrap ===
@@ -11,7 +12,6 @@ if _HERMES_HOME not in sys.path:
 # === end bootstrap ===
 
 
-from __future__ import annotations
 
 import sys
 import time

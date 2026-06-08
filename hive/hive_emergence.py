@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 hive_emergence — 蜂巢 1.16 涌现机制 (离线 daily scan + swarm_skills 路由)
 
@@ -10,17 +11,17 @@ hive_emergence — 蜂巢 1.16 涌现机制 (离线 daily scan + swarm_skills �
 - 路由: 高复现 pattern → 写入 swarm_skills, 后续任务直接复用
 """
 # === hermes-hive path bootstrap ===
-import os
-_HERMES_HOME = os.environ.get("HERMES_HOME") or os.path.expanduser("~/.hermes")
-_HIVE_DIR = os.path.join(_HERMES_HOME, "hive")
-if _HIVE_DIR not in sys.path:
-    sys.path.insert(0, _HIVE_DIR)
-if _HERMES_HOME not in sys.path:
-    sys.path.insert(0, _HERMES_HOME)
+import os as _os
+import sys as _sys
+_HERMES_HOME = _os.environ.get("HERMES_HOME") or _os.path.expanduser("~/.hermes")
+_HIVE_DIR = _os.path.join(_HERMES_HOME, "hive")
+if _HIVE_DIR not in _sys.path:
+    _sys.path.insert(0, _HIVE_DIR)
+if _HERMES_HOME not in _sys.path:
+    _sys.path.insert(0, _HERMES_HOME)
 # === end bootstrap ===
 
 
-from __future__ import annotations
 import json, sqlite3, sys, time
 from pathlib import Path
 from collections import Counter, defaultdict

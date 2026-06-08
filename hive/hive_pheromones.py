@@ -1,3 +1,4 @@
+from __future__ import annotations
 #!/usr/bin/env python3
 """
 hive_pheromones.py — 蜂巢气味/信息素池
@@ -8,17 +9,17 @@ hive_pheromones.py — 蜂巢气味/信息素池
 - pick_by_pheromone_v17: 0.7 * scent similarity + 0.3 * task_type_score
 """
 # === hermes-hive path bootstrap ===
-import os
-_HERMES_HOME = os.environ.get("HERMES_HOME") or os.path.expanduser("~/.hermes")
-_HIVE_DIR = os.path.join(_HERMES_HOME, "hive")
-if _HIVE_DIR not in sys.path:
-    sys.path.insert(0, _HIVE_DIR)
-if _HERMES_HOME not in sys.path:
-    sys.path.insert(0, _HERMES_HOME)
+import os as _os
+import sys as _sys
+_HERMES_HOME = _os.environ.get("HERMES_HOME") or _os.path.expanduser("~/.hermes")
+_HIVE_DIR = _os.path.join(_HERMES_HOME, "hive")
+if _HIVE_DIR not in _sys.path:
+    _sys.path.insert(0, _HIVE_DIR)
+if _HERMES_HOME not in _sys.path:
+    _sys.path.insert(0, _HERMES_HOME)
 # === end bootstrap ===
 
 
-from __future__ import annotations
 
 import array
 import hashlib
@@ -167,6 +168,30 @@ def init_db() -> None:
                 last_updated REAL NOT NULL,
                 PRIMARY KEY (huluwa_id, task_type)
             )
+            """
+        )
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS collective_lessons (
+              lesson_id INTEGER PRIMARY KEY AUTOINCREMENT,
+              worker_id INTEGER NOT NULL,
+              task_type TEXT NOT NULL,
+              task_excerpt TEXT,
+              approach TEXT NOT NULL,
+              reusable_pattern TEXT NOT NULL,
+              pitfalls TEXT,
+              evidence TEXT,
+              use_count INTEGER DEFAULT 0,
+              success_count INTEGER DEFAULT 0,
+              fail_count INTEGER DEFAULT 0,
+              quality_score REAL DEFAULT 0.5,
+              promoted_to_skill TEXT,
+              created_at REAL NOT NULL,
+              last_used_at REAL
+            );
+            CREATE INDEX IF NOT EXISTS idx_lessons_task_type ON collective_lessons(task_type);
+            CREATE INDEX IF NOT EXISTS idx_lessons_worker ON collective_lessons(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_lessons_quality ON collective_lessons(quality_score DESC);
             """
         )
         now_iso = datetime.utcnow().isoformat(timespec="seconds")

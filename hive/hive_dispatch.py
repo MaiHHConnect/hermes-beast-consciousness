@@ -10,19 +10,22 @@ hive_dispatch — 蜂巢派单器（带气味路由）
 5. fallback 到 round-robin（如果匹配度低或 embedding 失败）
 """
 # === hermes-hive path bootstrap ===
-import os
-_HERMES_HOME = os.environ.get("HERMES_HOME") or os.path.expanduser("~/.hermes")
-_HIVE_DIR = os.path.join(_HERMES_HOME, "hive")
-if _HIVE_DIR not in sys.path:
-    sys.path.insert(0, _HIVE_DIR)
-if _HERMES_HOME not in sys.path:
-    sys.path.insert(0, _HERMES_HOME)
+from __future__ import annotations
+import os as _os
+import sys as _sys
+_HERMES_HOME = _os.environ.get("HERMES_HOME") or _os.path.expanduser("~/.hermes")
+_HIVE_DIR = _os.path.join(_HERMES_HOME, "hive")
+if _HIVE_DIR not in _sys.path:
+    _sys.path.insert(0, _HIVE_DIR)
+if _HERMES_HOME not in _sys.path:
+    _sys.path.insert(0, _HERMES_HOME)
 # === end bootstrap ===
 
 
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -42,6 +45,9 @@ from hive_pheromones import (
     increment_load, pick_by_pheromone_v17, update_huluwa_task_pheromone,
 )
 import hive_kb as hk
+from hive_collective_memory import (
+    lessons_to_prompt, mark_lesson_used, publish_lesson, recall_lessons,
+)
 
 HERMES = os.path.join(os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes")), ".hermes/hermes-agent/venv/bin/hermes")
 HOME = "/Users/mac"
@@ -106,6 +112,68 @@ def classify_task(text: str) -> str:
         if any(keyword in text for keyword in keywords):
             return task_type
     return "general"
+
+
+
+
+HIGH_VALUE_LESSON_TYPES = {"code", "code_review", "research", "finance_realtime", "long_form"}
+
+
+def _parse_lesson_section(output: str) -> dict | None:
+    """解析娃输出里的 ## LESSON 段，支持 key:value 和小标题两种格式。"""
+    text = output or ""
+    marker = re.search(r"^##\s+LESSON\s*$", text, flags=re.IGNORECASE | re.MULTILINE)
+    if not marker:
+        return None
+    body = text[marker.end():]
+    next_header = re.search(r"^##\s+", body, flags=re.MULTILINE)
+    if next_header:
+        body = body[:next_header.start()]
+    fields = {"approach": "", "reusable_pattern": "", "pitfalls": "", "evidence": "", "quality_score": "0.6"}
+    aliases = {
+        "approach": "approach", "做法": "approach", "怎么做": "approach",
+        "reusable_pattern": "reusable_pattern", "pattern": "reusable_pattern", "模式": "reusable_pattern", "可复用模式": "reusable_pattern",
+        "pitfalls": "pitfalls", "坑": "pitfalls", "坑点": "pitfalls",
+        "evidence": "evidence", "证据": "evidence", "代码片段": "evidence",
+        "quality": "quality_score", "quality_score": "quality_score", "评分": "quality_score",
+    }
+    current = None
+    for raw_line in body.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        matched = re.match(r"[-*\s]*(approach|reusable_pattern|pattern|pitfalls|evidence|quality|quality_score|做法|怎么做|模式|可复用模式|坑|坑点|证据|代码片段|评分)\s*[:：]\s*(.*)$", line, flags=re.IGNORECASE)
+        if matched:
+            current = aliases.get(matched.group(1).lower(), aliases.get(matched.group(1), None))
+            if current:
+                fields[current] = matched.group(2).strip()
+            continue
+        if current and current != "quality_score":
+            fields[current] = (fields[current] + "\n" + line).strip()
+    if not fields["approach"] or not fields["reusable_pattern"]:
+        return None
+    try:
+        quality_score = float(fields["quality_score"])
+    except (TypeError, ValueError):
+        quality_score = 0.6
+    return {
+        "approach": fields["approach"],
+        "reusable_pattern": fields["reusable_pattern"],
+        "pitfalls": fields["pitfalls"],
+        "evidence": fields["evidence"],
+        "quality_score": max(0.0, min(1.0, quality_score)),
+    }
+
+
+def inject_collective_lessons(task_text: str, task_type: str, k: int = 3) -> tuple[str, list[dict]]:
+    """派单前召回集体记忆，并返回可注入 prompt 的片段。"""
+    try:
+        lessons = recall_lessons(task_text, task_type, k=k)
+    except Exception as exc:
+        sys.stderr.write(f"[hive] collective recall fail: {exc}\n")
+        return "", []
+    prompt = lessons_to_prompt(lessons)
+    return prompt, lessons
 
 
 TASK_CANDIDATES = {
@@ -418,20 +486,24 @@ class HiveDispatch:
                 memories = hk.query(t['task'], task_type=t_type, top_k=3)
                 # 过滤掉自己占位
                 memories = [m for m in memories if int(m['id']) != placeholder_id]
+                lesson_prompt, collective_lessons = inject_collective_lessons(t['task'], t_type, k=3)
                 inject_count = len(memories)
                 inject_ids = [int(m['id']) for m in memories] if memories else []
-                sys.stderr.write(f"[hive] {t.get('id', '?')}: type={t_type} query_recalled={inject_count} ids={inject_ids} placeholder={placeholder_id}\n")
+                lesson_ids = [int(m['lesson_id']) for m in collective_lessons] if collective_lessons else []
+                sys.stderr.write(f"[hive] {t.get('id', '?')}: type={t_type} query_recalled={inject_count} ids={inject_ids} lessons={lesson_ids} placeholder={placeholder_id}\n")
                 sys.stderr.flush()
                 if memories:
                     augmented_task = augmented_task + "\n\n" + hk.format_injection(memories)
                     # touch 引用计数
                     for m in memories:
                         hk.touch(int(m['id']))
+                if lesson_prompt:
+                    augmented_task = augmented_task + "\n\n" + lesson_prompt
                 fut = ex.submit(run_one, hid, augmented_task, self.timeout)
-                futs[fut] = (idx, t, hid, score, method, placeholder_id)
+                futs[fut] = (idx, t, hid, score, method, placeholder_id, collective_lessons)
 
             for fut in as_completed(futs):
-                idx, t, hid, score, method, placeholder_id = futs[fut]
+                idx, t, hid, score, method, placeholder_id, collective_lessons = futs[fut]
                 r = fut.result()
                 r['id'] = t.get('id', str(idx))
                 r['task'] = t['task']
@@ -444,6 +516,30 @@ class HiveDispatch:
                                 match_method=method, match_score=score)
                 except Exception as e:
                     sys.stderr.write(f"[hive] record fail: {e}\n")
+
+                for lesson in collective_lessons:
+                    try:
+                        mark_lesson_used(int(lesson['lesson_id']), ok=bool(r.get('ok')))
+                    except Exception as e:
+                        sys.stderr.write(f"[hive] lesson touch fail: {e}\n")
+
+                try:
+                    task_type_done = classify_task(t['task'])
+                    lesson_data = _parse_lesson_section(r.get('content') or '')
+                    if bool(r.get('ok')) and task_type_done in HIGH_VALUE_LESSON_TYPES and lesson_data:
+                        lesson_id = publish_lesson(
+                            worker_id=hid,
+                            task_type=task_type_done,
+                            task_excerpt=t['task'],
+                            approach=lesson_data['approach'],
+                            reusable_pattern=lesson_data['reusable_pattern'],
+                            pitfalls=lesson_data.get('pitfalls', ''),
+                            evidence=lesson_data.get('evidence', ''),
+                            quality_score=lesson_data.get('quality_score', 0.6),
+                        )
+                        sys.stderr.write(f"[hive] lesson published id={lesson_id} type={task_type_done}\n")
+                except Exception as e:
+                    sys.stderr.write(f"[hive] lesson publish fail: {e}\n")
 
                 # HIVE-PATCH-1.4: 跑完同步抽取 5 段结构化经验 + 失败归因，再 update 占位
                 experience_dict = None

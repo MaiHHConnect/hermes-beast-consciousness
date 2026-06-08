@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 hive_consensus — 蜂巢 1.15 共识机制 (3 候选 + 蚁后裁决)
 
@@ -9,17 +10,17 @@ hive_consensus — 蜂巢 1.15 共识机制 (3 候选 + 蚁后裁决)
 - 少数意见保留
 """
 # === hermes-hive path bootstrap ===
-import os
-_HERMES_HOME = os.environ.get("HERMES_HOME") or os.path.expanduser("~/.hermes")
-_HIVE_DIR = os.path.join(_HERMES_HOME, "hive")
-if _HIVE_DIR not in sys.path:
-    sys.path.insert(0, _HIVE_DIR)
-if _HERMES_HOME not in sys.path:
-    sys.path.insert(0, _HERMES_HOME)
+import os as _os
+import sys as _sys
+_HERMES_HOME = _os.environ.get("HERMES_HOME") or _os.path.expanduser("~/.hermes")
+_HIVE_DIR = _os.path.join(_HERMES_HOME, "hive")
+if _HIVE_DIR not in _sys.path:
+    _sys.path.insert(0, _HIVE_DIR)
+if _HERMES_HOME not in _sys.path:
+    _sys.path.insert(0, _HERMES_HOME)
 # === end bootstrap ===
 
 
-from __future__ import annotations
 import json, sqlite3, sys, time
 from pathlib import Path
 

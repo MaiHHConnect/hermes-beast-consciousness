@@ -1,3 +1,4 @@
+from __future__ import annotations
 #!/usr/bin/env python3
 """
 hive_kb.py
@@ -19,25 +20,20 @@ hive_kb.py
 """
 
 # === hermes-hive path bootstrap ===
-import os
-_HERMES_HOME = os.environ.get("HERMES_HOME") or os.path.expanduser("~/.hermes")
-_HIVE_DIR = os.path.join(_HERMES_HOME, "hive")
-if _HIVE_DIR not in sys.path:
-    sys.path.insert(0, _HIVE_DIR)
-if _HERMES_HOME not in sys.path:
-    sys.path.insert(0, _HERMES_HOME)
+import os as _os
+import sys as _sys
+_HERMES_HOME = _os.environ.get("HERMES_HOME") or _os.path.expanduser("~/.hermes")
+_HIVE_DIR = _os.path.join(_HERMES_HOME, "hive")
+if _HIVE_DIR not in _sys.path:
+    _sys.path.insert(0, _HIVE_DIR)
+if _HERMES_HOME not in _sys.path:
+    _sys.path.insert(0, _HERMES_HOME)
 # === end bootstrap ===
 
 
-from __future__ import annotations
 
-# HIVE-PATCH-1.4 蚁后审: 副后没 load .env, 直接 python 调时 env 空
-# 加 load_dotenv 让 hive 独立跑也能用
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes")), ".hermes/.env"))
-except ImportError:
-    pass
+# HIVE-PATCH-1.4 蚁后审: load_dotenv 让 hive 独立跑也能用
+# (实际执行挪到 from imports 之后, 避免 os 还没 import)
 
 import array
 import hashlib
@@ -52,6 +48,12 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any, Iterable, Sequence
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes")), ".hermes/.env"))
+except ImportError:
+    pass
 
 
 DB_PATH = Path(os.environ.get("HERMES_HOME", "~/.hermes")) / ".hermes/hive/hive_kb.db"

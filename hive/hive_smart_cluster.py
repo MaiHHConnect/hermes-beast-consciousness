@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 hive_smart_cluster — 蜂巢 1.14 gpt-5.5 智集群自适应路由
 
@@ -9,17 +10,17 @@ hive_smart_cluster — 蜂巢 1.14 gpt-5.5 智集群自适应路由
 - 集成: 1.16 swarm_skill → 1.14 智集群 → 1.8/1.9 协同共识 → 单娃
 """
 # === hermes-hive path bootstrap ===
-import os
-_HERMES_HOME = os.environ.get("HERMES_HOME") or os.path.expanduser("~/.hermes")
-_HIVE_DIR = os.path.join(_HERMES_HOME, "hive")
-if _HIVE_DIR not in sys.path:
-    sys.path.insert(0, _HIVE_DIR)
-if _HERMES_HOME not in sys.path:
-    sys.path.insert(0, _HERMES_HOME)
+import os as _os
+import sys as _sys
+_HERMES_HOME = _os.environ.get("HERMES_HOME") or _os.path.expanduser("~/.hermes")
+_HIVE_DIR = _os.path.join(_HERMES_HOME, "hive")
+if _HIVE_DIR not in _sys.path:
+    _sys.path.insert(0, _HIVE_DIR)
+if _HERMES_HOME not in _sys.path:
+    _sys.path.insert(0, _HERMES_HOME)
 # === end bootstrap ===
 
 
-from __future__ import annotations
 import json, sqlite3, sys, time
 from pathlib import Path
 from typing import Any, Optional
