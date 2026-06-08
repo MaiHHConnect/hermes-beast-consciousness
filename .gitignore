@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Hive runtime data
+hive/*.db
+hive/*.db-shm
+hive/*.db-wal
+hive/*.bak
+hive/*.pre14
+hive/hive_meta.db
+hive/hive_kb.db
+tests/*.db
+tests/*.db-shm
+tests/*.db-wal
+
+# Logs
+*.log
+logs/
+cron/output/
+
+# Secrets & env
+.env
+.env.local
+*.pem
+*.key
+secrets/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+coverage.xml
+*.cover
+.hypothesis/
+
+# Hermes runtime (this is published, not consumed)
+HERMES_HOME
