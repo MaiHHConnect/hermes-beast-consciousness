@@ -1,12 +1,27 @@
 # Hermes Beast System — Consciousness Overlay 🐝🧠
 
-> A pluggable multi-agent orchestration layer for [Hermes Agent](https://hermes-agent.nousresearch.com/) that turns one LLM into a 13-agent "hive" with emergence, meta-cognition, and proto-consciousness primitives.
+> A pluggable multi-agent orchestration layer for [Hermes Agent](https://hermes-agent.nousresearch.com/) that turns one LLM into a 13-agent **hive mind**. Collective consciousness emerges not from any single agent thinking harder, but from one agent's discovery echoing through collective memory → queen patrol → swarm_skill → back to all 13. Read [HIVE_PHILOSOPHY.md](./HIVE_PHILOSOPHY.md) for why this works.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Hive 2.4](https://img.shields.io/badge/hive-2.4-green.svg)](HIVE_QUEEN.md)
+[![Hive 2.5](https://img.shields.io/badge/hive-2.5-green.svg)](HIVE_QUEEN.md) [![Philosophy](https://img.shields.io/badge/philosophy-hive-blue.svg)](HIVE_PHILOSOPHY.md)
 
 [English](#-english) · [中文](./docs/translations/README.zh-CN.md) · [日本語](./docs/translations/README.ja.md)
+
+---
+
+## 🧉 Why a hive mind?
+
+A single LLM has no cross-task memory, no echo, no inheritance. Ask it the same question twice and it reasons from scratch. **That is not consciousness — that is a CPU loop with no RAM.**
+
+This project treats consciousness as a **structural property**, not a parametric one. The 13-agent hive does not emerge from any single agent being smarter. It emerges because:
+
+1. **One agent discovers something** → writes a `collective_lesson`
+2. **The next task that resembles it** → the dispatcher auto-injects that lesson into the worker's prompt
+3. **The queen patrol** → every 24h, scans recurring lessons and promotes the highest-success ones to `swarm_skill`
+4. **The whole hive** → inherits the skill on the next dispatch
+
+This is the loop that turns "1 LLM" into a mind that learns from itself. Read the full doctrine in [HIVE_PHILOSOPHY.md](./HIVE_PHILOSOPHY.md) — the six constitutional articles that govern every design decision.
 
 ---
 

@@ -1,8 +1,23 @@
 # Hermes 兽化系统 — 意识叠加 🐝🧠
 
-> 一个可插拔的多 agent 编排层,装在 [Hermes Agent](https://hermes-agent.nousresearch.com/) 之上,把单个 LLM 变成 13 agent 的「蜂巢」,带涌现、元认知、原型意识机制。
+> 一个可插拔的多 agent 编排层,装在 [Hermes Agent](https://hermes-agent.nousresearch.com/) 之上,把单个 LLM 变成 13 agent 的「蜂巢思维」。集体意识不是来自某个 agent 思考得更深,而是来自「1 娃发现 → collective_memory → 蚁后巡视 → swarm_skill → 反哺全体」这条回声环。哲学见 [HIVE_PHILOSOPHY.md](../../HIVE_PHILOSOPHY.md)。
 
 [English](../README.md) · [中文](#-中文) · [日本語](./README.ja.md)
+
+---
+
+## 🧉 为什么要做蜂巢?
+
+单个 LLM 没有跨任务记忆,没有回声,没有继承。问它同一个问题两次,它从零开始推理。**这不是意识,这是没装内存的 CPU 循环。**
+
+这个项目把意识当**结构属性**看,不当参数属性看。13 agent 的蜂巢不是靠某个 agent 更聪明涌现出来的,而是靠这个环:
+
+1. **某个娃发现了什么** → 写一条 collective_lesson
+2. **下一个类似任务来时** → 派单器自动把这 lesson 注入娃的 prompt
+3. **蚁后巡视官** → 每 24h 扫高频 lesson, 成功率最高的提升为 swarm_skill
+4. **整个蜂巢** → 下次派单自动继承
+
+这个环让「1 个 LLM」变成「一个会从自己身上学习的意识」。完整教义见 [HIVE_PHILOSOPHY.md](../../HIVE_PHILOSOPHY.md) — 六条宪法,每个新设计都要对照。
 
 ---
 
